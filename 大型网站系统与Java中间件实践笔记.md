@@ -41,16 +41,45 @@
 
 ### 网络通信基础
 
-#### TCP/IP五层结构
+#### TCP/IP四层结构
 
 * 应用层
 * 传输层
 * 网络层
 * 链路层
-* 物理层
 
 #### 网络IO的实现方式
 
 * BIO：也就是阻塞IO，当服务器端收到一个新的套接字，就要准备一个线程来专门处理，包括建立连接和读写，建立连接和读写操作也是阻塞的。
 
-* NIO：也就是非阻塞IO
+* NIO：也就是非阻塞IO，基于事件驱动思想，采用Reactor模式。NIO中有三个重要概念，分别是**Channel（通道）**，**Buffer（缓冲区）**和**Selector（选择器）**。
+  * 通道类似于BIO中的流，不过流是单向的，通道是双向的。
+  * 对通道进行读写只能通过缓冲区，缓冲区其实就是个数组，支持多种基本数据类型，对于网络IO，用的最多的还是字节缓冲区，也就是字节数组。关于缓冲区的几个概念：
+    * capacity：数组长度。
+    * position：当前游标位置。
+    * limit：第一个不允许读写的位置，也就是说，该位置前的数据是有效的，该位置后的数据是无意义的。
+
+    ```
+    // Java NIO 向文件写数据示例
+    File file = new File("data");
+    try (FileOutputStream outputStream = new FileOutputStream(file)) {
+        FileChannel channel = outputStream.getChannel();
+        ByteBuffer buffer = ByteBuffer.allocate(64);
+        buffer.put("java nio".getBytes());
+        buffer.flip();
+        channel.write(buffer);
+        channel.close();
+    }
+
+    // Java NIO 从文件读数据示例
+    File file = new File("data");
+    try (FileInputStream inputStream = new FileInputStream(file)) {
+        FileChannel channel = inputStream.getChannel();
+        ByteBuffer buffer = ByteBuffer.allocate(64);
+        channel.read(buffer);
+        buffer.flip();
+        // 对buffer进行操作
+    }
+    ```
+
+  * 选择器的作用是定时访问（单线程轮询）所有注册的通道，将通道中发生的特定事件取出进行处理。
