@@ -52,7 +52,7 @@
 
 * BIO：也就是阻塞IO，当服务器端收到一个新的套接字，就要准备一个线程来专门处理，包括建立连接和读写，建立连接和读写操作也是阻塞的。
 
-* NIO：也就是非阻塞IO，基于事件驱动思想，采用Reactor模式。NIO中有三个重要概念，分别是**Channel（通道）**，**Buffer（缓冲区）**和**Selector（选择器）**。
+* NIO：也就是非阻塞IO，基于事件驱动思想，采用**Reactor模式**。NIO中有三个重要概念，分别是**Channel（通道）**，**Buffer（缓冲区）**和**Selector（选择器）**。
   * 通道类似于BIO中的流，不过流是单向的，通道是双向的。
   * 对通道进行读写只能通过缓冲区，缓冲区其实就是个数组，支持多种基本数据类型，对于网络IO，用的最多的还是字节缓冲区，也就是字节数组。关于缓冲区的几个概念：
     * capacity：数组长度。
@@ -82,4 +82,28 @@
     }
     ```
 
-  * 选择器的作用是定时访问（单线程轮询）所有注册的通道，将通道中发生的特定事件取出进行处理。
+  * 选择器以单线程的方式管理一组注册其中的通道（SelectableChannel）。
+
+  * Reactor模式伪代码：
+
+    ```
+    while (true) {
+        selector.select(); // 选出若干IO就绪的通道（阻塞，单线程）
+        // selectedKey 表示选择器和通道的关联关系，可以理解为代表了通道本身
+        for (selectedKey in selector.selectedKeys()) {
+            if (selectedKey.isAcceptable()) { // accept 就绪
+                // 一般的处理方式是accept一个client socket channel，再注册到selector
+                handleAcceptEvent(selectedKey);
+            } else if (selectedKey.isReadable()) { // 读就绪
+                handleReadEvent(selectedKey); // 读数据
+            } else if (selectedKey.isWritable()) { // 写就绪
+                handleWriteEvent(selectedKey); // 写数据
+            }
+            // 从selectedKeys集合中删除，依然还在selector中
+            removeFromSelectedKeys(selectedKey);
+        }
+    }
+      
+    ```
+
+    Reactor模式最大的优势就是少量线程甚至单线程就能管理大量网络连接。
