@@ -688,3 +688,29 @@ c = a > b ? a : b
 ```
 
 注意如果数据表或管道提供的数据数量不一致，则可能会引发异常。如果 `where` 块中只有变量赋值，则表明只有一个测试用例。数据表和数据管道在测试方法结束后会自动关闭，所以不需要在 `cleanup` 块或 `cleanup()` 中手动清理了。
+
+## 交互驱动测试
+
+交互驱动测试关注的是被测试对象和**外部协作者**之间的交互行为，而不是被测试对象的**内部状态**。举个栗子，有一个消息推送者（被测对象），可以发送消息给若干消息订阅者（协作者）：
+
+```
+class Publisher {
+    List<Subscriber> subscribers
+    void send(String message)
+}
+
+interface Subscriber {
+    void receive(String message)
+}
+
+class PublisherSpec extends Specification {
+    Publisher publisher = new Publisher()
+}
+```
+
+我们要怎么测试推送者呢？在传统的状态驱动的测试中，我们只需要验证推送者内部保持了所有订阅者的引用即可，但是消息是否真的发出去了是否真的被接收到了，这个就无从得知了。为了验证这种消息传递的行为真的发生了，我们需要构建一种订阅者的特殊代理对象，这种对象就称为 `Mock` 对象。
+
+其实我们可以完全手写这种代理，但是如果被代理对象很复杂很庞大，那手写就很不爽了。这时候就需要使用一些 mocking 框架，mocking 框架主要有三点作用：
+* 快速生成 mock 对象（一般使用 JDK 动态代理）
+* 定义被测试对象和协作者的预期交互行为
+* 验证定义好的预期交互行为
