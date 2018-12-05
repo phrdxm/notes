@@ -714,3 +714,62 @@ class PublisherSpec extends Specification {
 * 快速生成 mock 对象（一般使用 JDK 动态代理）
 * 定义被测试对象和协作者的预期交互行为
 * 验证定义好的预期交互行为
+
+Java领域有很多 mocking 框架，比如 JMock, EasyMock, Mockito 等等。这些框架都可以和 Spock 协同使用，但更推荐使用 Spock 自带的 mocking 框架。
+
+### 创建 Mock 对象
+
+通过 `MockingApi.Mock()` 方法可以创建 Mock 对象：
+
+```
+def subscriber = Mock(Subscriber)
+def subscriber2 = Mock(Subscriber)
+```
+
+还有另一种更推荐的写法：
+
+```
+// 自动推断要 mock 的对象的类型
+Subscriber subscriber = Mock()
+Subscriber subscriber2 = Mock()
+```
+
+Mock 对象的真实类型其实是被代理对象的子类型，这里其实是一种多态的写法。
+
+### Mock 对象的默认行为
+
+调用 Mock 对象上的方法将返回相应类型的默认值，比如 0, false 或 null，只有 `Object.toString`，`Object.hashCode` 和 `Object.equals` 方法例外。Mock 对象的比较是对象地址的比较，`toString` 方法也会返回有内容的字符串来表明自己以及自己代理的对象。这些默认行为是可以覆盖的，如何覆盖将在 Stubbing 一节详述。
+
+### 向被测对象注入 Mock 对象
+
+将代理订阅者的 Mock 对象注入到推送者中：
+
+```
+class PublisherSpec extends Specification {
+    Publisher publisher = new Publisher()
+    Subscriber subscriber = Mock()
+    Subscriber subscriber2 = Mock()
+
+    def setup() {
+        publisher.subscribers << subscriber // << 是 Groovy 的语法糖，List.add() 的简便写法
+        publisher.subscribers << subscriber2
+    }
+}
+```
+
+接下来描述订阅者和推送者之间预期的交互行为。
+
+### Mocking
+
+```
+def "should send messages to all subscribers"() {
+    when:
+    publisher.send("hello")
+
+    then:
+    1 * subscriber.receive("hello")
+    1 * subscriber2.receive("hello")
+}
+```
+
+上面这段代码的意思就是：当推送者发送消息 hello，所有订阅者都将接收到一次消息 hello。
