@@ -772,4 +772,89 @@ def "should send messages to all subscribers"() {
 }
 ```
 
-上面这段代码的意思就是：当推送者发送消息 hello，所有订阅者都将接收到一次消息 hello。
+上面这段代码的意思就是：当推送者发送消息 hello，所有订阅者都将接收到一次且仅有一次消息 hello。
+
+当 `when` 块中的代码运行的时候，Mock 对象上的方法调用情况必须要和 `then` 块中描述的完全一致，如果有不一致的地方，就会抛 `InteractionNotSatisfiedError` 异常。这种验证过程是自动进行的，不需要额外代码。
+
+`then` 块中的交互描述语句可以分为四个部分，分别是：
+
+```
+1 * subscriber.receive("hello")
+|   |          |       |
+|   |          |       目标参数
+|   |          目标方法
+|   目标 Mock 对象
+调用次数
+```
+
+#### 调用次数
+
+调用次数可以是一个具体值，也可以是范围：
+
+```
+1 * subscriber.receive("hello")      // 有且仅有一次调用
+0 * subscriber.receive("hello")      // 0 次调用
+(1..3) * subscriber.receive("hello") // 1 到 3 次调用，包括 1 和 3
+(1.._) * subscriber.receive("hello") // 至少一次调用
+(_..3) * subscriber.receive("hello") // 最多三次调用
+_ * subscriber.receive("hello")      // 任意次数的调用，包括 0 次
+```
+
+#### 目标 Mock 对象
+
+```
+1 * subscriber.receive("hello") // 调用发生在 'subscriber' 对象上
+1 * _.receive("hello")          // 调用发生在任意 Mock 对象上
+```
+
+#### 目标方法
+
+```
+1 * subscriber.receive("hello") // 'receive' 方法将会被调用
+1 * subscriber./r.*e/("hello")  // 名字匹配正则表达式 r.*e 的方法将会被调用
+```
+
+如果目标方法是 getter 方法，可以简化为：
+
+```
+1 * subscriber.status // 等同于：1 * subscriber.getStatus()
+```
+
+如果目标方法是 setter 方法，就没有什么简化写法了：
+
+```
+1 * subscriber.setStatus("ok") // 不可以写成：1 * subscriber.status = "ok"
+```
+
+#### 目标参数
+
+```
+1 * subscriber.receive("hello")     // 调用将会传入参数 "hello"
+1 * subscriber.receive(!"hello")    // 调用将会传入一个不是 "hello" 的参数
+1 * subscriber.receive()            // 调用不会传入任何参数
+1 * subscriber.receive(_)           // 调用将会传入一个值任意的参数（包括 null）
+1 * subscriber.receive(*_)          // 调用将会传入任意数量（包括 0），任意值的参数
+1 * subscriber.receive(!null)       // 调用将会传入一个任意的非 null 的参数
+1 * subscriber.receive(_ as String) // 调用将会传入一个 String 类型的非 null 的参数
+1 * subscriber.receive({ it.size() > 3 }) // 调用将会传入一个参数，该参数能使 lambda 表达式返回 true
+                                          // 这里是指传入参数的长度将会大于 3
+```
+
+以上这些花哨的目标参数描述是可以混用的：
+
+```
+1 * process.invoke("ls", "-a", _, !null, { ["abcdefghiklmnopqrstuwx1"].contains(it) })
+```
+
+#### 匹配任意调用
+
+```
+1 * subscriber._(*_)     // 匹配 subscriber mock 对象上的任意方法，参数数量和值都任意
+1 * subscriber._         // 上一行的简便写法，更推荐
+
+1 * _._                  // 匹配任意 mock 对象上的任意方法，参数数量和值都任意
+1 * _                    // 上一行的简便写法，更推荐
+```
+
+#### 更严格的 Mocking
+
