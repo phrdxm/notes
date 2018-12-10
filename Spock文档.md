@@ -866,7 +866,7 @@ publisher.publish("hello")
 
 then:
 1 * subscriber.receive("hello") // 期望 'subscriber' mock 对象上的一次 'receive' 调用
-_ * auditing._                  // 'auditing' 对象上的任何调用都是允许的
+_ * auditing._                  // 'auditing' mock 对象上的任何调用都是允许的
 0 * _                           // 除上面两条描述以外的其他任何行为都是不允许的，该描述必须是最后一条描述
 ```
 
