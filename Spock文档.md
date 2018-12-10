@@ -858,3 +858,31 @@ _ * subscriber.receive("hello")      // 任意次数的调用，包括 0 次
 
 #### 更严格的 Mocking
 
+以上对交互行为的描述都是不严格的，为什么不严格呢？因为只描述了**可以有**某些行为，没有描述**不可以有**某些行为。严格的 mocking 应该指明，除了描述的行为外，其他任何行为都不应该发生：
+
+```
+when:
+publisher.publish("hello")
+
+then:
+1 * subscriber.receive("hello") // 期望 'subscriber' mock 对象上的一次 'receive' 调用
+_ * auditing._                  // 'auditing' 对象上的任何调用都是允许的
+0 * _                           // 除上面两条描述以外的其他任何行为都是不允许的，该描述必须是最后一条描述
+```
+
+#### 交互描述语句的位置
+
+交互描述语句除了可以放在 `then` 块，放在 `when` 块之前的所有地方都是可以的，比如 `setup` 块。此外，交互描述语句放在辅助方法中也是可以的。
+
+如果一次调用匹配多个交互描述，那么匹配最先定义的调用次数没有用完的交互描述语句，而且优先从 `then` 块开始匹配。
+
+#### 创建 mock 对象时描述交互行为
+
+如果 mock 对象有一些基本的通用的交互行为，不太可能根据上下文发生变化的，则可以在创建该 mock 对象时就定义：
+
+```
+def subscriber = Mock(Subscriber) {
+   1 * receive("hello")
+   1 * receive("goodbye")
+}
+```
