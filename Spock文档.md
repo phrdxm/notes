@@ -886,3 +886,41 @@ def subscriber = Mock(Subscriber) {
    1 * receive("goodbye")
 }
 ```
+
+也可以这么写：
+
+```
+class MySpec extends Specification {
+    Subscriber subscriber = Mock {
+        1 * receive("hello")
+        1 * receive("goodbye")
+    }
+}
+```
+
+#### 对交互进行分组
+
+如果有大量的交互描述语句，它们的目标 mock 对象都是同一个，那么可以将这些交互描述语句分为一个组：
+
+```
+// 省去了反复写 subscriber 的麻烦
+with(subscriber) {
+    1 * receive("hello")
+    1 * receive("goodbye")
+}
+```
+
+#### 交互描述语句和条件语句混合
+
+`then` 块中可以同时包括交互描述语句和条件语句，且一般来说，会把交互描述语句放在条件语句前面：
+
+```
+when:
+publisher.send("hello")
+
+then:
+1 * subscriber.receive("hello")
+publisher.messageCount == 1
+```
+
+#### 显式交互描述代码块
