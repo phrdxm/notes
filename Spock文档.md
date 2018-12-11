@@ -924,3 +924,27 @@ publisher.messageCount == 1
 ```
 
 #### 显式交互描述代码块
+
+实际上，spock 框架会在 `when` 块执行之前执行 `then` 块中的所有交互描述语句（类似于变量的先定义才能使用）。一般情况下，这种颠倒的执行顺序不会出错，但是下面这种情况就有问题了：
+
+```
+when:
+publisher.send("hello")
+
+then:
+def message = "hello" // 1
+1 * subscriber.receive(message) // 2
+```
+
+执行顺序是先2再when最后1。2中的目标参数是一个变量（也完全可以让调用次数成为变量），在这种颠倒的执行顺序下，message变量明显找不到定义。一种解决办法是将message定义在when块前或where块中，另一种办法就是将变量定义语句和交互描述语句绑定：
+
+```
+when:
+publisher.send("hello")
+
+then:
+interaction { // 作为整体执行
+    def message = "hello"
+    1 * subscriber.receive(message)
+}
+```
