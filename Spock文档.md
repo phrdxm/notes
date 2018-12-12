@@ -971,4 +971,50 @@ then:
 
 定义在 `then` 块外的交互的作用域是从它的定义开始，直到包含它的测试方法结束。
 
-交互只能在测试方法中定义，不能定义在静态方法，`setupSpec` 方法和 `cleanupSpec` 方法中。
+交互只能在测试方法中定义，不能定义在静态方法，`setupSpec` 方法和 `cleanupSpec` 方法中。一样的道理，mock 对象也不能作为静态字段和 `@Shared` 字段。
+
+#### 交互验证
+
+交互驱动的测试失败主要有两种原因：实际的调用次数大于期望的调用次数，或实际的调用次数小于期望的调用次数。对于前者，一旦调用次数超出，就会立即抛出  `TooManyInvocationsError` 错误：
+
+```
+Too many invocations for:
+
+2 * subscriber.receive(_) (3 invocations)
+```
+
+为了更容易诊断问题的原因，spock 会列出已经发生的所有匹配的调用：
+
+```
+Matching invocations (ordered by last occurrence):
+
+2 * subscriber.receive("hello")   <-- this triggered the error
+1 * subscriber.receive("goodbye")
+```
+
+根据输出，第二次 `receive("hello")` 调用引发了 `TooManyInvocationsError` 错误。注意到两次 `receive("hello")` 调用实际上是难以区分的，所以就把两次调用合并为了一行。第一次 `receive("hello")` 调用是有可能先于 `receive("goodbye")` 的。
+
+第二种情况（调用次数过少）只能在 `when` 块完成后检测到。下面的输出就表示出现了调用次数过少的错误(`TooFewInvocationsError`)：
+
+```
+Too few invocations for:
+
+1 * subscriber.receive("hello") (0 invocations)
+```
+
+引发这种错误的更进一步的原因可能有：
+
+* 调用该方法的时候参数不对
+* 在其他 mock 对象上调用的该方法
+* 调用了该 mock 对象上的其他方法，而不是这个 `receive` 方法
+
+不管是上面的哪种情况，`TooFewInvocationsError` 错误都会引发。
+
+为了更好地诊断调用次数过少的真正原因，spock 会将没有匹配任何交互的调用全部列出，并根据它们和出错交互的相似程度排序。比如现有一次调用，和出错交互很像，只有参数没对上，那么这次调用就会最先列出：
+
+```
+Unmatched invocations (ordered by similarity):
+
+1 * subscriber.receive("goodbye") // 和 1 * subscriber.receive("hello") 最相似
+1 * subscriber2.receive("hello")
+```
