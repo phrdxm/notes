@@ -936,7 +936,7 @@ def message = "hello" // 1
 1 * subscriber.receive(message) // 2
 ```
 
-执行顺序是先2再when最后1。2中的目标参数是一个变量（也完全可以让调用次数成为变量），在这种颠倒的执行顺序下，message变量明显找不到定义。一种解决办法是将message定义在when块前或where块中，另一种办法就是将变量定义语句和交互描述语句绑定：
+执行顺序是先2再when最后1。2中的目标参数是一个变量（也完全可以让调用次数成为变量），在这种颠倒的执行顺序下，message变量明显找不到定义。一种解决办法是将message定义在 `when` 块前或 `where` 块中，另一种办法就是将变量定义语句和交互描述语句绑定：
 
 ```
 when:
@@ -948,3 +948,27 @@ interaction { // 作为整体执行
     1 * subscriber.receive(message)
 }
 ```
+
+#### 交互描述语句的作用域
+
+如果交互在 `then` 块中定义，那么它的作用域就是对应的 `where` 块：
+
+```
+when:
+publisher.send("message1")
+
+then:
+1 * subscriber.receive("message1")
+
+when:
+publisher.send("message2")
+
+then:
+1 * subscriber.receive("message2")
+```
+
+上面的代码确保了在第一个 `when` 块执行的时候，subscriber mock 对象会接收到消息message1，在第二个 `when` 块执行的时候会接收到消息message2。
+
+定义在 `then` 块外的交互的作用域是从它的定义开始，直到包含它的测试方法结束。
+
+交互只能在测试方法中定义，不能定义在静态方法，`setupSpec` 方法和 `cleanupSpec` 方法中。
