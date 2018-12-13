@@ -1040,3 +1040,7 @@ then:
 ```
 
 指定 `receive` 方法的前两次调用传入的参数是"hello"，第三次调用传入的参数是"goodbye"。
+
+#### mocking 类
+
+到目前为止，所有的 mocking 都是在 mocking 接口。其实 mocking 类和 mocking 接口是完全一样的，唯一的区别是 mocking 类需要额外的依赖：`cglib-nodep-2.2` 以上版本和 `objenesis-1.2` 以上版本。两者缺一不可，如果缺少，spock 框架会提示。
