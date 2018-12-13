@@ -1044,3 +1044,77 @@ then:
 #### mocking 类
 
 到目前为止，所有的 mocking 都是在 mocking 接口。其实 mocking 类和 mocking 接口是完全一样的，唯一的区别是 mocking 类需要额外的依赖：`cglib-nodep-2.2` 以上版本和 `objenesis-1.2` 以上版本。两者缺一不可，如果缺少，spock 框架会提示。
+
+### Stubbing
+
+Stubbing 只关心调用的返回值，不关心调用发生了多少遍。可以通过 stubbing 覆盖掉 mock 对象的默认行为。举个栗子：
+
+```
+interface Subscriber {
+    String receive(String message)
+}
+```
+
+现在指定 receive 方法的每次调用都返回 "ok"：
+
+```
+subscriber.receive(_) >> "ok"
+```
+
+相比交互描述语句，少了调用次数，最右边多了返回值生成器：
+
+```
+subscriber.receive(_) >> "ok"
+|          |       |     |
+|          |       |     返回值生成器
+|          |       目标参数
+|          目标方法
+目标 mock 对象
+```
+
+stubbed 交互可以定义在 `then` 块中，也可以定义在 `when` 块前。如果一个 mock 对象只是用来返回一些值的，那一般来说会把相关的 stubbed 交互定义在 `given` 块，或创建该 mock 对象的时候。
+
+#### 返回固定值
+
+和刚才的操作一样，使用右位移操作符(`>>`)指定交互返回一个固定值：
+
+```
+subscriber.receive(_) >> "ok"
+```
+
+对不同的调用需要返回不同的值，可以这么做：
+
+```
+subscriber.receive("message1") >> "ok"
+subscriber.receive("message2") >> "fail"
+```
+
+接收到消息 "message1" 的时候，指定返回 "ok"，接收到消息 "message2" 的时候，指定返回 "fail"，当然也可以指定其他任意值，只要和 receive 方法的返回类型兼容即可。
+
+#### 返回若干数量的值
+
+为了便捷地在一系列调用中指定不同的返回值，可以使用 `>>>` 操作符：
+
+```
+subscriber.receive(_) >>> ["ok", "error", "error", "ok"]
+```
+
+第一次调用指定返回 "ok"，第二次和第三次调用指定返回 "error"，第四次调用指定返回 "ok"。`>>>` 操作符的右边必须是一个 groovy 知道如何迭代的可迭代对象，在上面的栗子里，是一个 groovy 数组。
+
+#### 根据参数计算返回值
+
+为了根据方法参数动态指定返回值，可以在 `>>` 右边跟一个闭包，如果闭包有一个无类型的参数，那么该参数就代表方法的参数列表：
+
+```
+subscriber.receive(_) >> { args -> args[0].size() > 3 ? "ok" : "fail" }
+```
+
+如果第一个参数（只有一个参数）的长度（当前上下文中应该是指字符数）大于3，返回 "ok"，否则返回 "fail"。
+
+在多数情况下，如果能在闭包中直接访问方法参数会方便很多。如果闭包有多个参数，或有一个带类型的参数，那么方法参数会映射到闭包参数上：
+
+```
+subscriber.receive(_) >> { String message -> message.size() > 3 ? "ok" : "fail" }
+```
+
+返回值生成器的行为和前一种写法完全一样，但可读性好了很多。
