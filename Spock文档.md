@@ -1018,3 +1018,25 @@ Unmatched invocations (ordered by similarity):
 1 * subscriber.receive("goodbye") // 和 1 * subscriber.receive("hello") 最相似
 1 * subscriber2.receive("hello")
 ```
+
+#### 调用次序
+
+虽然交互描述语句的定义是有顺序的，但实际发生的调用可以是任意顺序。比如：
+
+```
+then:
+2 * subscriber.receive("hello")
+1 * subscriber.receive("goodbye")
+```
+
+实际调用的顺序可以是"hello", "hello", "goodbye"，可以是"hello", "goodbye", "hello"，也可以是"goodbye", "hello", "hello"，都是可以通过测试的，通过下面的方式可以指定调用的顺序：
+
+```
+then:
+2 * subscriber.receive("hello")
+
+then:
+1 * subscriber.receive("goodbye")
+```
+
+指定 `receive` 方法的前两次调用传入的参数是"hello"，第三次调用传入的参数是"goodbye"。
