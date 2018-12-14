@@ -1118,3 +1118,34 @@ subscriber.receive(_) >> { String message -> message.size() > 3 ? "ok" : "fail" 
 ```
 
 返回值生成器的行为和前一种写法完全一样，但可读性好了很多。
+
+#### 抛出异常
+
+除了指定返回值，也可以指定抛出异常：
+
+```
+subscriber.receive(_) >> { throw new InternalError("ouch") }
+```
+
+当然闭包里也可以加其他操作，比如打印日志之类的，每当调用发生的时候都会执行。
+
+#### 链式返回值生成器
+
+```
+subscriber.receive(_) >>> ["ok", "fail", "ok"] >> { throw new InternalError() } >> "ok"
+```
+
+前三次调用依次返回 "ok"，"fail"，"ok"，第四次调用抛出 `InternalError` 异常，第五次及以后的调用都返回 "ok"。
+
+### 结合 Mocking 和 Stubbing
+
+mocking 和 stubbing 可以按如下方式结合：
+
+```
+1 * subscriber.receive("message1") >> "ok" // 不可拆分
+1 * subscriber.receive("message2") >> "fail"
+```
+
+### 其他
+
+关于交互驱动测试 spock 还提供了其他特性，比如 mock 构造器，mock 静态方法等。但是不推荐使用，如果真的需要去用这些特性，说明你的代码设计的有问题，更好的做法是重构你的业务代码，而不是去用这些冷门的特性。
