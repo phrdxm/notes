@@ -12,78 +12,78 @@
 
  ### Groovy 和 Java 的一些区别
  
- 1. public 修饰符在 Groovy 中不是必须的。
+1. public 修饰符在 Groovy 中不是必须的。
 
- 2. Groovy 支持范围类型，比如 `1..3` 相当于 Java 中的数组 `{ 1, 2, 3 }`；`1.2..3` 相当于 Java 中的数组 `{ 1.2, 2.2 }`；`1..<3` 相当于数组 `{ 1, 2 }`；`'a'..'z'` 相当于所有小写字母的字符集合。范围类型是可迭代的。
+1. Groovy 支持范围类型，比如 `1..3` 相当于 Java 中的数组 `{ 1, 2, 3 }`；`1.2..3` 相当于 Java 中的数组 `{ 1.2, 2.2 }`；`1..<3` 相当于数组 `{ 1, 2 }`；`'a'..'z'` 相当于所有小写字母的字符集合。范围类型是可迭代的。
 
- 3. Groovy 中的数组（列表）表示为 `[ v1, v2 ]`，用中括号括起。
+1. Groovy 中的数组（列表）表示为 `[ v1, v2 ]`，用中括号括起。
 
- 4. Groovy 中的字典可表示为 `[ k1: v1, k2: v2 ]`，键和值的类型都可以随意，可以迭代键值对。空字典 `[: ]`。
+1. Groovy 中的字典可表示为 `[ k1: v1, k2: v2 ]`，键和值的类型都可以随意，可以迭代键值对。空字典 `[: ]`。
 
- 5. Groovy 支持类型自动推断，使用关键字 `def`，比如 `def var = value;`。
+1. Groovy 支持类型自动推断，使用关键字 `def`，比如 `def var = value;`。
 
- 6. Groovy 的方法的返回值可以指定为某一类型，也可以指定为 `def`。
+1. Groovy 的方法的返回值可以指定为某一类型，也可以指定为 `def`。
 
- 7. Groovy 的方法支持默认参数。
+1. Groovy 的方法支持默认参数。
 
- 8. 一个 Groovy 脚本就是一个类，定义在脚本中的类可以理解为内部类，直接定义在脚本中的方法（或者说是函数）可以当成脚本类的成员方法。
+1. 一个 Groovy 脚本就是一个类，定义在脚本中的类可以理解为内部类，直接定义在脚本中的方法（或者说是函数）可以当成脚本类的成员方法。
 
- 9. 字符串中 `$xxx` 可以直接引用变量。
+1. 字符串中 `$xxx` 可以直接引用变量。
 
- 10. 字符串中 `${xxx.xxx()}` 可以直接引用方法的返回值。
+1. 字符串中 `${xxx.xxx()}` 可以直接引用方法的返回值。
 
- 11. Groovy 支持范围下标，负数下标。
+1. Groovy 支持范围下标，负数下标。
 
- 12. Groovy 可以使用 Java I/O 的所有类，除此之外还有 I/O 操作的快捷方式：
+1. Groovy 可以使用 Java I/O 的所有类，除此之外还有 I/O 操作的快捷方式：
 
-  * 对文件进行逐行处理：
+    * 对文件进行逐行处理：
 
-    ```
-    // java.io.File
-    new File(filepath).eachLine {
-        line -> processLine(line)
-    };
-    ```
+      ```
+      // java.io.File
+      new File(filepath).eachLine {
+          line -> processLine(line)
+      };
+      ```
 
-  * 获取文件的整个文本：
+    * 获取文件的整个文本：
 
-    ```    
-    // java.io.File
-    new File(filepath).text
-    ```
+      ```    
+      // java.io.File
+      new File(filepath).text
+      ```
 
-  * 写入文件：
+    * 写入文件：
 
-    ```
-    new File(filepath).withWriter("UTF-8") {
-        writer -> writer.write(str)
-    };
-    ```
+      ```
+      new File(filepath).withWriter("UTF-8") {
+          writer -> writer.write(str)
+      };
+      ```
 
-  * 获取文件大小（单位：字节）：
-    
-    ```
-    new File(filepath).length()
-    ```
+    * 获取文件大小（单位：字节）：
+      
+      ```
+      new File(filepath).length()
+      ```
 
-  * 判断路径是文件还是目录：
-    
-    ```
-    file.isDirectory()
-    file.isFile()
-    ```
+    * 判断路径是文件还是目录：
+      
+      ```
+      file.isDirectory()
+      file.isFile()
+      ```
 
-  * 文件内容复制：
-    
-    ```
-    fileCopy << file.text // 不能 file.text >> fileCopy
-    ```
+    * 文件内容复制：
+      
+      ```
+      fileCopy << file.text // 不能 file.text >> fileCopy
+      ```
 
-13. `def regex = ～"reg"` 创建正则表达式对象。`strValue ==~ "regPattern"` 判断字符串整体是否匹配右侧的正则表达式，返回布尔值。`strValue =~ "regPattern"` 创建 Matcher 对象。
+1. `def regex = ～"reg"` 创建正则表达式对象。`strValue ==~ "regPattern"` 判断字符串整体是否匹配右侧的正则表达式，返回布尔值。`strValue =~ "regPattern"` 创建 Matcher 对象。
 
-14. Groovy 中的除法默认是小数除法，不是整数除法。
+1. Groovy 中的除法默认是小数除法，不是整数除法。
 
-15. Groovy 中的闭包可以表示为
+1. Groovy 中的闭包可以表示为
 
     ```
     {
@@ -101,15 +101,15 @@
 
     闭包是一种对象，通过 `closure.call(..)` 调用闭包，闭包中可以调用闭包外的变量。所有闭包都有一个名为 it 的隐式参数。
 
-16. Groovy 中支持类似于 python 中的字典传参，比如 `func(k1: v1, k2: v2, ...)`，传入的参数就是一个字典 `[k1: v1, k2: v2, ...]`。
+1. Groovy 中支持类似于 python 中的字典传参，比如 `func(k1: v1, k2: v2, ...)`，传入的参数就是一个字典 `[k1: v1, k2: v2, ...]`。
 
-17. Groovy 中形参可以不用指定类型。
+1. Groovy 中形参可以不用指定类型。
 
-18. Java 中通过 `.class` 获取类对象，在 Groovy 中可以省略。
+1. Java 中通过 `.class` 获取类对象，在 Groovy 中可以省略。
 
-19. Groovy 支持 `?.` 语法，比如 `foo?.bar()`，当 `foo` 为 `null` 时，整个表达式返回 `null`，否则就调用 `bar()`。
+1. Groovy 支持 `?.` 语法，比如 `foo?.bar()`，当 `foo` 为 `null` 时，整个表达式返回 `null`，否则就调用 `bar()`。
 
-20. Groovy 中 `return` 可以省略。
+1. Groovy 中 `return` 可以省略。
 
 ## Spock
 
