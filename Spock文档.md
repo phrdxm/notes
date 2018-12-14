@@ -440,16 +440,16 @@ and: "seed the product table"
 
 块描述不仅在源码中呈现，在运行时也能呈现（和注释的区别），可作为调试信息。
 
-### 扩展
+### 基础扩展注解
 
 Spock 还提供了一套扩展的注解:
 
-* `@Timeout`：标记测试方法，设置其执行的超时时间，超时就测试不通过。
+* `@Timeout`：标记测试方法，设置其执行的超时时间，超时就测试不通过。默认单位秒，可以通过 `unit` 参数指定时间单位。
 * `@Ignore`：忽略标记的测试方法。
 * `@IgnoreRest`：忽略其他没有该注解的测试方法。需要快速运行其中一个测试方法而不需要运行整个测试类时，这注解就很有用。
 * `@FailsWith`：标记测试方法，表明该测试方法的预期行为就是测试不通过。这个注解一般会在这种情况下用到，就是待测代码存在已知的 bug，且短时间内无法修复。其他情况下用 `thrown()` 和 `notThrown()` 更合适。
 
-后面还会提到如何实现自定义的扩展注解。
+后面还会提到进阶扩展注解，以及如何实现自定义的扩展注解。
 
 ### 和 JUnit 的比较
 
@@ -1149,3 +1149,39 @@ mocking 和 stubbing 可以按如下方式结合：
 ### 其他
 
 关于交互驱动测试 spock 还提供了其他特性，比如 mock 构造器，mock 静态方法等。但是不推荐使用，如果真的需要去用这些特性，说明你的代码设计的有问题，更好的做法是重构你的业务代码，而不是去用这些冷门的特性。
+
+## 进阶扩展注解
+
+### IgnoreIf
+
+在特定条件下忽略被注解的测试方法，该注解必须传入一个 `predicate` 类型的闭包：
+
+```
+@IgnoreIf({ System.getProperty("os.name").contains("windows") })
+def "I'll run everywhere but on Windows"() { ... }
+```
+
+为了使可读性更强，写起来更方便，可以使用一些闭包中内置的变量：
+
+* `sys` 包含所有 system 属性，键值对形式
+* `env` 包含所有环境变量
+* `os` 包含操作系统信息，`spock.util.environment.OperatingSystem` 类型
+* `jvm` 包含 JVM 信息，`spock.util.environment.Jvm` 类型
+
+使用 `os` 变量，上面的代码可以简化为这个样子：
+
+```
+@IgnoreIf({ os.windows })
+def "I'll run everywhere but on Windows"() { ... }
+```
+
+使用 `@Ignore` 和 `@IgnoreIf` 的时候要注意，如果测试类上有 `@StepWise`，那么忽略掉一些测试方法可能会对后面的测试方法产生影响。
+
+### Requires
+
+`@Requires` 和 `@IgnoreIf` 很像，只不过 `@IgnoreIf` 是在 `predicate` 闭包返回 true 时不执行测试方法，而 `@Requires` 是在 `predicate` 闭包返回 false 时不执行测试方法，正好相反。
+
+```
+@Requires({ os.windows })
+def "I'll only run on Windows"() { ... }
+```
