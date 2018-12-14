@@ -1185,3 +1185,64 @@ def "I'll run everywhere but on Windows"() { ... }
 @Requires({ os.windows })
 def "I'll only run on Windows"() { ... }
 ```
+
+### Retry
+
+`@Retry` 一般在进行一些小的集成测试的时候会用到，比如说测试方法中真的要去调用远程服务（直接 mock 掉叫单元测试，真的去做远程调用就是集成测试了）。这个注解有5个配置项：
+
+* 重试次数，默认3次
+* 每次重试之间的时间间隔，默认0，默认单位毫秒
+* 测试方法出现了何种未处理异常才会触发重试
+* 触发重试的条件，用 `predicate` 闭包定义
+* 对于数据驱动测试，有两种重试模式可供配置，仅重试发生错误的那次迭代，或重试整个测试方法
+
+```
+class FlakyIntegrationSpec extends Specification {
+  @Retry
+  def retry3Times() { ... }
+
+  @Retry(count = 5)
+  def retry5Times() { ... }
+
+  @Retry(exceptions=[IOException])
+  def onlyRetryIOException() { ... }
+
+  @Retry(condition = { failure.message.contains('foo') })
+  def onlyRetryIfConditionOnFailureHolds() { ... }
+
+  @Retry(condition = { instance.field != null })
+  def onlyRetryIfConditionOnInstanceHolds() { ... }
+
+  @Retry
+  def retryFailingIterations() {
+    ...
+    where:
+    data << sql.select()
+  }
+
+  @Retry(mode = Retry.Mode.FEATURE)
+  def retryWholeFeature() {
+    ...
+    where:
+    data << sql.select()
+  }
+
+  @Retry(delay = 1000)
+  def retryAfter1000MsDelay() { ... }
+}
+```
+
+`@Retry` 也可以标记测试类，相当于标记类中的所有测试方法。测试方法上的 `@Retry` 会覆盖测试类上的 `@Retry`。
+
+```
+@Retry
+class FlakyIntegrationSpec extends Specification {
+  def "will be retried with config from class"() {
+    ...
+  }
+  @Retry(count = 5)
+  def "will be retried using its own config"() {
+    ...
+  }
+}
+```
