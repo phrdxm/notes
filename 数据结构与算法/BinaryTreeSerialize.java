@@ -1,6 +1,3 @@
-import java.util.*;
-import java.util.concurrent.LinkedBlockingQueue;
-
 class Demo {
     public static void main(String[] args) {
         Node binaryTreeRoot = new Node (
@@ -14,7 +11,8 @@ class Demo {
                 new Node("6", null, null)
             )
         );
-
-        Node.printBinaryTreeInLine(binaryTreeRoot);
+        String value = binaryTreeRoot.serializeDLR();
+        System.out.println(value);
+        System.out.println(binaryTreeRoot.equals(Node.deserializeDLR(value)));
     }
 }
