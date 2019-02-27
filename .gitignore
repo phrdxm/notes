@@ -1,2 +1,5 @@
-Demo.class
-Node.class
+Exercise*.class
+*.hprof
+*.hprof.analysis/
+java/JVM/*.class
+数据结构与算法/*.class
