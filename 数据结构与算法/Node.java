@@ -25,6 +25,9 @@ public final class Node {
     }
 
     public static Node of(String id, Node left, Node right) {
+        if (NULL_ID.equals(id) && isNull(left) && isNull(right)) {
+            return NULL;
+        }
         return new Node(id, left, right);
     }
 
@@ -34,7 +37,7 @@ public final class Node {
             throw new IllegalArgumentException("node id can not be blank");
         }
         if (id.equals(NULL_ID) && (!isNull(left) || !isNull(right))) {
-            throw new IllegalStateException("NULL node have no children");
+            throw new IllegalStateException("NULL node has no children");
         }
 
         this.id = id;
