@@ -1,18 +1,25 @@
 class Demo {
     public static void main(String[] args) {
-        Node binaryTreeRoot = new Node (
-            "1",
-            new Node("2", new Node("4", null, null), null),
-            new Node("3", 
-                new Node("5",
-                    new Node("7", null, null),
-                    new Node("8", null, null)
+        Node binaryTreeRoot = Node.of("1",
+            Node.of("2", 
+                Node.of("4"), 
+                null
+            ),
+            Node.of("3", 
+                Node.of("5",
+                    Node.of("7"),
+                    Node.of("8")
                 ),
-                new Node("6", null, null)
+                Node.of("6")
             )
         );
-        String value = binaryTreeRoot.serializeDLR();
-        System.out.println(value);
-        System.out.println(binaryTreeRoot.equals(Node.deserializeDLR(value)));
+        String valueDLR = binaryTreeRoot.serializeDLR();
+        System.out.println("DLR: " + valueDLR);
+        System.out.println(binaryTreeRoot.equals(Node.deserializeDLR(valueDLR)));
+
+        String valueLevel = binaryTreeRoot.serializeLevel();
+        System.out.println("level: " + valueLevel);
+        System.out.println(binaryTreeRoot.equals(Node.deserializeLevel(valueLevel)));
+        Node.deserializeLevel("#!1!#!");
     }
 }

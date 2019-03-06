@@ -1,18 +1,42 @@
 import java.util.*;
 import java.util.concurrent.LinkedBlockingQueue;
 
-class Node {
+public final class Node {
 
-    private String id;
+    private final String id;
 
-    private Node left;
+    private final Node left;
 
-    private Node right;
+    private final Node right;
 
-    public Node () {
+    public static final String NULL_ID = "#";
+
+    public static final Node NULL = new Node(NULL_ID, null, null);
+
+    public static boolean isNull(Node node) {
+        return node == null || NULL_ID.equals(node.getId());
     }
 
-    public Node (String id, Node left, Node right) {
+    public static Node of(String id) {
+        if (NULL_ID.equals(id)) {
+            return NULL;
+        }
+        return new Node(id, null, null);
+    }
+
+    public static Node of(String id, Node left, Node right) {
+        return new Node(id, left, right);
+    }
+
+    private Node(String id, Node left, Node right) {
+        Objects.requireNonNull(id, "node id can not be null");
+        if ("".equals(id.trim())) {
+            throw new IllegalArgumentException("node id can not be blank");
+        }
+        if (id.equals(NULL_ID) && (!isNull(left) || !isNull(right))) {
+            throw new IllegalStateException("NULL node have no children");
+        }
+
         this.id = id;
         this.left = left;
         this.right = right;
@@ -30,38 +54,26 @@ class Node {
         return right;
     }
 
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public void setLeft(Node left) {
-        this.left = left;
-    }
-
-    public void setRight(Node right) {
-        this.right = right;
+    public String toString() {
+        return getId() + "{ left: " + getLeft() + ", right: " + getRight() + " }";
     }
 
     @Override
     public boolean equals(Object other) {
-        if (other == null) {
-            return false;
-        }
         if (this == other) {
             return true;
         }
-        if (!getClass().isAssignableFrom(other.getClass())) {
+        if (!(other instanceof Node)) {
             return false;
         }
         Node otherNode = (Node) other;
-        return Objects.equals(getId(), otherNode.getId()) && 
-            Objects.equals(getLeft(), otherNode.getLeft()) &&
-            Objects.equals(getRight(), otherNode.getRight());
+        return getId().equals(otherNode.getId()) && Objects.equals(getLeft(), otherNode.getLeft())
+                && Objects.equals(getRight(), otherNode.getRight());
     }
 
     @Override
     public int hashCode() {
-        int result = getId() == null ? 0 : getId().hashCode();
+        int result = getId().hashCode();
         int leftHashCode = getLeft() == null ? 0 : getLeft().hashCode();
         int rightHashCode = getRight() == null ? 0 : getRight().hashCode();
         result = result * 31 + leftHashCode;
@@ -70,15 +82,78 @@ class Node {
         return result;
     }
 
+    public String serializeLevel() {
+        Queue<Node> queue = new LinkedBlockingQueue<>();
+        String str = "";
+        queue.add(this);
+        while (queue.size() != 0) {
+            Node currentNode = queue.poll();
+            str += currentNode.getId() + "!";
+            if (!isNull(currentNode)) {
+                if (!isNull(currentNode.getLeft())) {
+                    queue.add(currentNode.getLeft());
+                } else {
+                    queue.add(NULL);
+                }
+                if (!isNull(currentNode.getRight())) {
+                    queue.add(currentNode.getRight());
+                } else {
+                    queue.add(NULL);
+                }
+            }
+        }
+
+        return str;
+    }
+
+    private static Node deserializeLevel(List<String> ids) {
+        if ((ids.size() & 1) == 0) {
+            ids.add(NULL_ID);
+        }
+        Node[] nodes = new Node[ids.size()];
+        int lastIndexOfNonNull = nodes.length - 2;
+        for (int i = nodes.length - 1; i > 0; i--) {
+            Node right = nodes[i];
+            if (!NULL_ID.equals(ids.get(i)) && isNull(right)) {
+                right = Node.of(ids.get(i));
+            }
+
+            Node left = nodes[--i];
+            if (!NULL_ID.equals(ids.get(i)) && isNull(left)) {
+                left = Node.of(ids.get(i));
+            }
+
+            while (--lastIndexOfNonNull > -1) {
+                if (!NULL_ID.equals(ids.get(lastIndexOfNonNull))) {
+                    break;
+                }
+            }
+            if (lastIndexOfNonNull == -1) {
+                throw new IllegalArgumentException("missing root");
+            }
+            nodes[lastIndexOfNonNull] = Node.of(ids.get(lastIndexOfNonNull), left, right);
+        }
+
+        return nodes[0];
+    }
+
+    public static Node deserializeLevel(String str) {
+        return deserializeLevel(getIds(str));
+    }
+
     public String serializeDLR() {
         String str = getId() + "!";
-        if (getLeft() == null) {
-            str += "#!";
+        if (isNull(this)) {
+            return str;
+        }
+
+        if (isNull(getLeft())) {
+            str += NULL_ID + "!";
         } else {
             str += getLeft().serializeDLR();
         }
-        if (getRight() == null) {
-            str += "#!";
+        if (isNull(getRight())) {
+            str += NULL_ID + "!";
         } else {
             str += getRight().serializeDLR();
         }
@@ -87,15 +162,15 @@ class Node {
     }
 
     private static Node deserializeDLR(List<String> ids) {
-        if ("#".equals(ids.get(0))) {
+        if (NULL_ID.equals(ids.get(0))) {
             ids.remove(0);
             return null;
         }
 
-        return new Node(ids.remove(0), Node.deserializeDLR(ids), Node.deserializeDLR(ids));
+        return new Node(ids.remove(0), deserializeDLR(ids), deserializeDLR(ids));
     }
 
-    public static Node deserializeDLR(String str) {
+    private static List<String> getIds(String str) {
         List<String> ids = new ArrayList<>(Arrays.asList(str.split("!")));
         Iterator<String> iter = ids.iterator();
         while (iter.hasNext()) {
@@ -104,26 +179,34 @@ class Node {
                 iter.remove();
             }
         }
-        
-        return Node.deserializeDLR(ids);
+
+        return ids;
+    }
+
+    public static Node deserializeDLR(String str) {
+        return Node.deserializeDLR(getIds(str));
     }
 
     public static void printBinaryTreeInLine(Node root) {
         Node currentLineEnd = root;
+        Node nextLineEnd = root;
         Queue<Node> queue = new LinkedBlockingQueue<>();
         queue.add(root);
         while (queue.size() != 0) {
             Node currentNode = queue.poll();
             System.out.print(currentNode.getId() + " ");
-            if (currentNode.getLeft() != null) {
+            if (!isNull(currentNode.getLeft())) {
                 queue.add(currentNode.getLeft());
+                nextLineEnd = currentNode.getLeft();
             }
-            if (currentNode.getRight() != null) {
+            if (!isNull(currentNode.getRight())) {
                 queue.add(currentNode.getRight());
+                nextLineEnd = currentNode.getRight();
             }
+
             if (currentNode == currentLineEnd) {
                 System.out.println();
-                currentLineEnd = currentNode.getRight();
+                currentLineEnd = nextLineEnd;
             }
         }
         System.out.println();
