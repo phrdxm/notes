@@ -20,7 +20,6 @@
     1. `instanceof`检查参数的类型是否是当前类型。
     1. 参数类型强转。
     1. 关键域比较：
-
        * float和double用`Float.compare(float, float)`和`Double.compare(double, double)`比较。
        * 其他基本类型域用`==`。
        * 对象引用域用`Objects.equals(Object, Object)`。
