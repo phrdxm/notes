@@ -55,5 +55,7 @@
     1. 通过`super.clone()`进行逐域拷贝。这样的调用链最终会调用Object中的native clone方法，也就是说，这种逐域拷贝是有风险的，java语言机制之外的。Object中的native clone方法的行为会受Cloneable接口影响，如果实现了Cloneable接口，会进行逐域拷贝，否则抛出CloneNotSupportedException。这是对接口的极端用法，不值得效仿。
     1. 修正任何需要修正的域（浅拷贝深拷贝问题）。
 
-* 当两个对象之间具有排序关系时，应考虑实现Comparable<T>接口。该接口只有一个方法`int compareTo(T t)`，约定是当前对象小于、等于或大于指定对象时返回负数、零或正数，且要尽量做到`(x.compareTo(y) == 0) == x.equals(y)`。
-* 当两个对象之间具有多种排序关系时，应考虑将主排序关系实现为Comparable<T>接口，将其他排序关系实现为Comparator<T>接口。该接口中的`int compare(T o1, T o2)`方法和compareTo方法具有类似的约定。
+* 关于排序关系：
+  * 当两个对象之间具有排序关系时，应考虑实现Comparable<T>接口。该接口只有一个方法`int compareTo(T t)`，约定是当前对象小于、等于或大于指定对象时返回负数、零或正数，且要尽量做到`(x.compareTo(y) == 0) == x.equals(y)`。
+  * 当两个对象之间具有多种排序关系时，应考虑将主排序关系实现为Comparable<T>接口，将其他排序关系实现为Comparator<T>接口。该接口中的`int compare(T o1, T o2)`方法和compareTo方法具有类似的约定。
+  * compareTo方法或compare方法的实现：从最重要的域开始比较，再比较次重要的域，以此类推，若某次比较出现不相等结果，则得出最终结果结束方法；若所有关键域的比较结果都是相等的，则返回0。对于基本类型域，应使用`WrappedType.compare(f1, f2)`比较；对于对象引用域，应视具体情况使用compareTo方法或Comparator对象进行比较；数组引用域视作多个对象引用域。
