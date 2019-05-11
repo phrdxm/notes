@@ -7,6 +7,7 @@
 * 永远不要重写finalize()方法。
 * 涉及到正则表达式只能用`Pattern.compile(..)`且Pattern对象一定要复用。
 * 永远不要`new String("xxx")`。
+* 永远不要`new Boolean(true)`和`new Boolean(false)`，用`Boolean.valueOf(..)`、`Boolean.TRUE`和`Boolean.FALSE`替代。
 * 不要搞延迟初始化，性能提升不明显，且实现起来很复杂。
 * 不要搞对象池，除非是重量级对象（数据库连接那种）。
 * 对于AutoCloseable对象，必须要用try-with-resources关闭。try-with-resources不仅仅是try-catch-finally的语法糖，还压制（suppressed）了finally块中的异常，可通过真正的异常对象的getSuppressed()方法获得。
