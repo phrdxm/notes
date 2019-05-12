@@ -269,3 +269,10 @@
 * synchronized和volatile
 * ReentrantLock和ReentrantReadWriteLock
 * java.util.concurrent.atomic包
+* wait：当前线程主动放弃this内置锁，进入等待队列
+* notify：唤醒this内置锁等待队列中的随机一个线程，参与this内置锁的竞争
+* notifyAll：唤醒this内置锁等待队列中的所有线程，参与this内置锁的竞争
+* CountDownLatch
+* CyclicBarrier
+* Semaphore
+* Exchanger
